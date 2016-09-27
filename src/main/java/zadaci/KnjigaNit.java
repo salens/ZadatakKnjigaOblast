@@ -1,12 +1,7 @@
 package zadaci;
 
-import com.j256.ormlite.dao.CloseableIterator;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
-import com.j256.ormlite.dao.ForeignCollection;
-import com.j256.ormlite.jdbc.JdbcConnectionSource;
-import com.j256.ormlite.misc.TransactionManager;
-import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.support.ConnectionSource;
 import model.Knjiga;
 import model.Oblast;
@@ -16,17 +11,27 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Created by android on 27.9.16..
  */
-public class Zadatak4BrisanjeVrednosti {
+public class KnjigaNit extends Thread{
+
+    private String imeClana;
+    private Knjiga knjiga;
 
     static Dao<Knjiga,Integer> knjigaDao;
     static Dao<Oblast,Integer> oblastDao;
 
+    public KnjigaNit(Knjiga knjiga, String imeClana) {
+        this.knjiga = knjiga;
+        this.imeClana = imeClana;
+    }
+
     public static void main(String[] args) {
+
+
+
         ConnectionSource connectionSource = null;
         Connection c = null;
         try {
@@ -38,22 +43,19 @@ public class Zadatak4BrisanjeVrednosti {
             knjigaDao = DaoManager.createDao(connectionSource, Knjiga.class);
             oblastDao = DaoManager.createDao(connectionSource, Oblast.class);
 
-            List<Oblast> oblast = oblastDao.queryForAll();
-            for (Oblast o : oblast)
-                System.out.println(o.toString());
 
-            oblast = oblastDao.queryForEq(Oblast.POLJE_NAZIV, "Aritmeticki operatori");
-            oblast.get(0);
-            for (Oblast obl : oblast){
-                oblastDao.delete(obl);
+            List<Knjiga> knjige = knjigaDao.queryForAll();
+            List<KnjigaNit> knjige2 = new ArrayList<>();
+
+            for (Knjiga k : knjige){
+                KnjigaNit knjigaNit = new KnjigaNit(k, "dddfd");
+                knjigaNit.start();
+                knjige2.add(knjigaNit);
             }
 
-
-            List<Oblast> obl = oblastDao.queryForAll();
-            for (Oblast ob : obl)
-                System.out.println(ob.toString());
-
-
+            for (KnjigaNit knjiga :knjige2) {
+                knjiga.join();
+            }
 
             //SQL naredbe koje zelimo da posaljemo bazi
         } catch ( Exception e )
@@ -72,6 +74,41 @@ public class Zadatak4BrisanjeVrednosti {
                 e.printStackTrace();
             }
         }
-        System.out.println("Uspesno kreirao bazu podataka");
+        System.out.println("Uspesno ucitanja baza podataka");
+    }
+
+    private void knjizara(){
+
+        do{
+            try {
+                System.out.println("Pozajmljuje knjigu od 0 do 5 sec");
+
+
+                this.sleep(500);
+
+                    synchronized (knjiga){
+
+                        System.out.println("Knjiga je zauzeta");
+                    }
+
+                knjiga.setPrisutna(true);
+                System.out.println("Biblioteka se zatvara");
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } while(knjiga.isPrisutna() != true);
+
+
+
+    }
+
+
+
+    @Override
+    public void run() {
+
+        knjizara();
+
     }
 }
