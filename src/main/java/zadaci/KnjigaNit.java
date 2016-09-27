@@ -2,10 +2,12 @@ package zadaci;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import model.Knjiga;
 import model.Oblast;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -30,15 +32,10 @@ public class KnjigaNit extends Thread{
 
     public static void main(String[] args) {
 
-
-
         ConnectionSource connectionSource = null;
-        Connection c = null;
+
         try {
-            //Inicjalizujemo drajver za SQLite
-            Class.forName("org.sqlite.JDBC");
-            //Upostavljamo konekciju sa bazom
-            c = DriverManager.getConnection("jdbc:sqlite:knjigaOblast.db");
+            connectionSource = new JdbcConnectionSource("jdbc:sqlite:knjigaOblast.db");
 
             knjigaDao = DaoManager.createDao(connectionSource, Knjiga.class);
             oblastDao = DaoManager.createDao(connectionSource, Oblast.class);
@@ -48,7 +45,7 @@ public class KnjigaNit extends Thread{
             List<KnjigaNit> knjige2 = new ArrayList<>();
 
             for (Knjiga k : knjige){
-                KnjigaNit knjigaNit = new KnjigaNit(k, "dddfd");
+                KnjigaNit knjigaNit = new KnjigaNit(k, "marko");
                 knjigaNit.start();
                 knjige2.add(knjigaNit);
             }
@@ -64,45 +61,43 @@ public class KnjigaNit extends Thread{
          */
         {
             System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-        } finally{
-            try {
-                /*Zatvaramo konekciju sa bazom u slucaju da se desi neki
-                   izuzetak ili ako sve uspe uspesno da se izvrsi
-                 */
-                c.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
+        } finally {
+            if (connectionSource != null) {
+                try {
+                    connectionSource.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
-        System.out.println("Uspesno ucitanja baza podataka");
     }
 
     private void knjizara(){
 
         do{
             try {
-                System.out.println("Pozajmljuje knjigu od 0 do 5 sec");
 
-
-                this.sleep(500);
+                int randomnumber = ( (int)(Math.random( )*5000) +1);
+                if(knjiga.isPrisutna()) {
+                    System.out.println("Pozajmljuje knjigu od 0 do 5 sec");
+                    synchronized (knjiga){
+                        knjiga.setPrisutna(false);
+                    }
+                    this.sleep(randomnumber);
 
                     synchronized (knjiga){
-
-                        System.out.println("Knjiga je zauzeta");
+                        knjiga.setPrisutna(true);
+                        System.out.println("Vrati mi knjigu");
                     }
-
-                knjiga.setPrisutna(true);
-                System.out.println("Biblioteka se zatvara");
+                }
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        } while(knjiga.isPrisutna() != true);
-
+        } while(!knjiga.isPrisutna());
 
 
     }
-
 
 
     @Override

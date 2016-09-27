@@ -1,13 +1,12 @@
 package zadaci;
 
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import model.Knjiga;
 import model.Oblast;
+import java.io.IOException;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 /**
  * Created by android on 27.9.16..
@@ -16,37 +15,27 @@ public class Zadatak1KreiranjeTabela {
     public static void main(String[] args) {
 
         ConnectionSource connectionSource = null;
-        Connection c = null;
-        try {
-            //Inicjalizujemo drajver za SQLite
-            Class.forName("org.sqlite.JDBC");
-            //Upostavljamo konekciju sa bazom
-            c = DriverManager.getConnection("jdbc:sqlite:knjigaOblast.db");
 
+        try {
+
+            connectionSource = new JdbcConnectionSource("jdbc:sqlite:knjigaOblast.db");
 
             TableUtils.dropTable(connectionSource, Knjiga.class,true);
             TableUtils.dropTable(connectionSource, Oblast.class,true);
 
+            TableUtils.createTable(connectionSource, Knjiga.class);
+            TableUtils.createTable(connectionSource, Oblast.class);
 
-            TableUtils.createTable(connectionSource,Knjiga.class);
-            TableUtils.createTable(connectionSource,Oblast.class);
 
-
-            //SQL naredbe koje zelimo da posaljemo bazi
-        } catch ( Exception e )
-        /*Hvatamo bilo kakav izuzetak koji moze da znaci
-           da ne mozemo da uspostavimo konekciju sa bazom
-         */
-        {
-            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-        } finally{
-            try {
-                /*Zatvaramo konekciju sa bazom u slucaju da se desi neki
-                   izuzetak ili ako sve uspe uspesno da se izvrsi
-                 */
-                c.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
+        }catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            if (connectionSource != null) {
+                try {
+                    connectionSource.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         System.out.println("Uspesno kreirao bazu podataka");

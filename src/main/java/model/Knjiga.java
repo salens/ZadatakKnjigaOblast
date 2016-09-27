@@ -27,9 +27,9 @@ public class Knjiga {
     @DatabaseField(columnName = POLJE_DATUM_IZDAVANJA,canBeNull = false)
     private Date datumIzdavanja;
 
-    private boolean prisutna;
+    private boolean prisutna = true;
 
-    @ForeignCollectionField(foreignFieldName = "oblast")
+    @ForeignCollectionField(foreignFieldName = "knjiga")
     private ForeignCollection<Oblast> oblasti;
 
 

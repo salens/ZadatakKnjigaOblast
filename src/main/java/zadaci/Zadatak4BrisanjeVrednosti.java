@@ -11,6 +11,7 @@ import com.j256.ormlite.support.ConnectionSource;
 import model.Knjiga;
 import model.Oblast;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -28,12 +29,10 @@ public class Zadatak4BrisanjeVrednosti {
 
     public static void main(String[] args) {
         ConnectionSource connectionSource = null;
-        Connection c = null;
+
         try {
-            //Inicjalizujemo drajver za SQLite
-            Class.forName("org.sqlite.JDBC");
-            //Upostavljamo konekciju sa bazom
-            c = DriverManager.getConnection("jdbc:sqlite:knjigaOblast.db");
+
+            connectionSource = new JdbcConnectionSource("jdbc:sqlite:knjigaOblast.db");
 
             knjigaDao = DaoManager.createDao(connectionSource, Knjiga.class);
             oblastDao = DaoManager.createDao(connectionSource, Oblast.class);
@@ -43,10 +42,8 @@ public class Zadatak4BrisanjeVrednosti {
                 System.out.println(o.toString());
 
             oblast = oblastDao.queryForEq(Oblast.POLJE_NAZIV, "Aritmeticki operatori");
-            oblast.get(0);
-            for (Oblast obl : oblast){
-                oblastDao.delete(obl);
-            }
+            oblastDao.delete(oblast.get(0));
+
 
 
             List<Oblast> obl = oblastDao.queryForAll();
@@ -62,14 +59,13 @@ public class Zadatak4BrisanjeVrednosti {
          */
         {
             System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-        } finally{
-            try {
-                /*Zatvaramo konekciju sa bazom u slucaju da se desi neki
-                   izuzetak ili ako sve uspe uspesno da se izvrsi
-                 */
-                c.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
+        } finally {
+            if (connectionSource != null) {
+                try {
+                    connectionSource.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         System.out.println("Uspesno kreirao bazu podataka");
