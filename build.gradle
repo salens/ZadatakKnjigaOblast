@@ -3,14 +3,15 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 
-sourceCompatibility = 1.5
+sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
 }
-
+defaultTasks 'build'
 dependencies {
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.8.11.2'
     compile group: 'com.j256.ormlite', name: 'ormlite-jdbc', version: '5.0'
     compile group: 'com.j256.ormlite', name: 'ormlite-core', version: '5.0'
+    compile group: 'org.springframework', name: 'spring-context', version: '4.3.3.RELEASE'
 }
