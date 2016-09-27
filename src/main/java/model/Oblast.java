@@ -31,6 +31,12 @@ public class Oblast {
         this.pocetnaStrana = pocetnaStrana;
     }
 
+    public Oblast(String naziv, int pocetnaStrana,Knjiga knjiga) {
+        this.naziv = naziv;
+        this.pocetnaStrana = pocetnaStrana;
+        this.knjiga = knjiga;
+    }
+
 
     public int getId() {
         return id;
